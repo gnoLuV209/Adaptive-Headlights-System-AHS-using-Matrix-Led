@@ -13,8 +13,8 @@ byte module_left =0;
 byte module_right=0;
 int servo1 = 6;
 int servo2 = 5;
-int c;
-int angle;
+int ADC0;
+int angle_rotation;
 /*_________________________________________________________________*/
 // High Beam in 4 area
 byte normal_mode[] =                             
@@ -88,40 +88,54 @@ Serial.setTimeout(1);
 lc.shutdown (0,false);
 lc.shutdown (1,false);
 // set the brightness to a medium values
-lc.setIntensity (0,2);                       // 0 = low; 8 = high – first variable is module number i.e. module 0
-lc.setIntensity (1,2);                       // 0 = low; 8 = high – first variable is module number i.e. module 1
+lc.setIntensity (0,0);                       // 0 = low; 8 = high – first variable is module number i.e. module 0
+lc.setIntensity (1,0);                       // 0 = low; 8 = high – first variable is module number i.e. module 1
 // clear the displays
 lc.clearDisplay (0);
 lc.clearDisplay (1);
 module_left  = 0; // Left Headlight
-module_right = 1; // Right Headlight
+module_right = 1; // Right Headlight 
 }
 /*_________________________________________________________________*/
 void loop() {
   normal();
   x = Serial.readString();
-  if (x=='1eft') {
+  if (x=="1eft") {
     lc.clearDisplay (0);
     lc.clearDisplay (1);
     area_left();
+    Serial.println("high_mid and high_right");
     delay(2000);
-    } 
-  if (x=='mid') {
+    }
+  else if (x=="mid") {
     lc.clearDisplay (0);
     lc.clearDisplay (1);
     area_mid();
+    Serial.println("high_left and high_right");
     delay(2000);
     } 
-  if (x=='right') {   
+  else if (x=="right") {   
     lc.clearDisplay (0);
     lc.clearDisplay (1);
-    area_right(); 
+    area_right();
+    Serial.println("high_left and high_mid");
     delay(2000);
     }
-  c = analogRead(A0);
-  angle = map(c,0,1023,0,180);
-  myServo1.write(angle);
-  myServo2.write(angle);      
+// Read Sensor by Analog  
+  ADC0 = analogRead(A0);
+  angle_rotation = map(ADC0,0,1023,0,180);
+  if (angle_rotation > 145) {
+    myServo1.write(145);
+    myServo2.write(145);  
+  }
+  else if (angle_rotation < 55) {
+   myServo1.write(55);
+   myServo2.write(55);  
+  }
+  else { 
+   myServo1.write(angle_rotation);
+   myServo2.write(angle_rotation);  
+  }
   }
 /*_________________________________________________________________*/
 // Normal mode function
@@ -131,21 +145,21 @@ void normal(){
     lc.setRow (1,i,normal_mode[i]);
     }
     }
-// Area 1 mode function
+// Area left mode function
 void area_left(){
   for (int i = 0; i < 8; i++){
     lc.setRow (0,i,area_left_mode[i]);
     lc.setRow (1,i,normal_mode[i]);
     }
     }
-// Area 2 mode function
+// Area mid mode function
 void area_mid(){
   for (int i = 0; i < 8; i++){
     lc.setRow (0,i,area_mid1_mode[i]);
     lc.setRow (1,i,area_mid2_mode[i]);
     }
     }
-// Area 4 mode function
+// Area right mode function
 void area_right(){
   for (int i = 0; i < 8; i++){
     lc.setRow (1,i,area_right_mode[i]);

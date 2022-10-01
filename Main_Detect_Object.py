@@ -13,13 +13,13 @@ def Mask(roi_number):
     return canny
 #############################################################################################################
 # Condition of each ROIs
-def ROI_left(roi_left, frame):
+def ROI_left(roi_left, frame, data):
     mask_left = Mask(roi_left)
     contours_left, _ = cv2.findContours(mask_left, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     if contours_left is not None:
         for cnt_l in contours_left:
             area_l = cv2.contourArea(cnt_l)
-            if  area_l > 20:
+            if  area_l > 30:
                 rect = cv2.minAreaRect(cnt_l)
                 (x, y), (w, h), angle = rect
                 box = cv2.boxPoints(rect)
@@ -27,16 +27,21 @@ def ROI_left(roi_left, frame):
                 cv2.circle(roi_left, (int(x), int(y)), 3, (0, 0, 255), -1)
                 cv2.polylines(roi_left, [box], True, (0, 255, 0), 2)
                 cv2.putText(frame, "LOW BEAM", (30,170), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0),2 )
-                sleep(0.01)
-                #arduino.write(b'left')
+                try:
+                    arduino.write(b'left')
+                    sleep(0.01)
+                except:
+                    sleep(0.0001)
+        if data == 'high_left and high_right' or data == 'high_left and high_mid':
+            cv2.putText(frame, "HIGH BEAM", (30,170), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0),2 )
 #############################################################################################################
-def ROI_mid(roi_mid, frame):
+def ROI_mid(roi_mid, frame, data):
     mask_mid = Mask(roi_mid)
     contours_mid, _ = cv2.findContours(mask_mid, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     if contours_mid is not None:
         for cnt_m in contours_mid:
             area_m = cv2.contourArea(cnt_m)
-            if  area_m > 20:
+            if  area_m > 30:
                 rect = cv2.minAreaRect(cnt_m)
                 (x, y), (w, h), angle = rect
                 box = cv2.boxPoints(rect)
@@ -44,16 +49,21 @@ def ROI_mid(roi_mid, frame):
                 cv2.circle(roi_mid, (int(x), int(y)), 3, (0, 0, 255), -1)
                 cv2.polylines(roi_mid, [box], True, (0, 255, 0), 2)
                 cv2.putText(frame, "LOW BEAM", (260,170), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0),2 )
-                sleep(0.01)
-                #arduino.write(b'mid')
+                try:
+                    arduino.write(b'mid')
+                    sleep(0.01)
+                except:
+                    sleep(0.0001)
+        if data == 'high_mid and high_right' or data == 'high_left and high_mid':
+            cv2.putText(frame, "HIGH BEAM", (260,170), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0),2 )
 #############################################################################################################
-def ROI_right(roi_right, frame):
+def ROI_right(roi_right, frame, data):
     mask_right = Mask(roi_right)
     contours_right, _ = cv2.findContours(mask_right, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     if contours_right is not None:
         for cnt_r in contours_right:
             area_r = cv2.contourArea(cnt_r)
-            if  area_r > 20:
+            if  area_r > 30:
                 rect = cv2.minAreaRect(cnt_r)
                 (x, y), (w, h), angle = rect
                 box = cv2.boxPoints(rect)
@@ -61,11 +71,16 @@ def ROI_right(roi_right, frame):
                 cv2.circle(roi_right, (int(x), int(y)), 3, (0, 0, 255), -1)
                 cv2.polylines(roi_right, [box], True, (0, 255, 0), 2)
                 cv2.putText(frame, "LOW BEAM", (510, 170), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0), 2)
-                sleep(0.01)
-                #arduino.write(b'right')
+                try:
+                    arduino.write(b'right')
+                    sleep(0.01)
+                except:
+                    sleep(0.0001)
+        if data == 'high_left and high_right' or data == 'high_mid and high_right':
+            cv2.putText(frame, "HIGH BEAM", (510,170), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0),2 )
 #_____________________________________________________________________________________________________#
 # Create communicate with Arduino
-#arduino = serial.Serial(port='COM9', baudrate=115200, timeout=0.1)
+arduino = serial.Serial(port='COM9', baudrate=115200, timeout=0.1) 
 cap = cv2.VideoCapture("VideoTest.mp4")
 while True:
     _, frame = cap.read()
@@ -76,11 +91,15 @@ while True:
     roi_right = frame[190:340, 481:640]
     #  Mask
     mask = Mask(roi)
+    signal_high = arduino.readline()
+    data = signal_high.decode('utf-8')
+    data = data.rstrip()
+    #print(data)
     try:
         # Create 3 threads for each ROIs
-        thread_left = threading.Thread(target=ROI_left, args=(roi_left, frame,))
-        thread_mid = threading.Thread(target=ROI_mid, args=(roi_mid, frame,))
-        thread_right = threading.Thread(target=ROI_right, args=(roi_right, frame,))
+        thread_left = threading.Thread(target=ROI_left, args=(roi_left, frame, data,))
+        thread_mid = threading.Thread(target=ROI_mid, args=(roi_mid, frame, data,))
+        thread_right = threading.Thread(target=ROI_right, args=(roi_right, frame, data,))
         # Start 3 thread
         thread_left.start()
         thread_mid.start()
