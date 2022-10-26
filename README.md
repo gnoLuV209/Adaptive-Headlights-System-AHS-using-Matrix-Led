@@ -12,7 +12,7 @@ STEP 1 : You need to prepare some electronic components
 STEP 2 : Download some sofware for this project
 + Download the Arduino IDE sofware for uploading source code to the microcontroller
 + Download the Python IDE sofware for image processing by computer vision
-+ Open Command Prompt to install some package for python: type command: py -m pip install pyserial, type command: py -m pip install Pillow, type command: py -m pip install opencv-python
++ Open Command Prompt to install some package for python: type command: py -m pip install pyserial, type command: py -m pip install Pillow, type command: py -m pip install opencv-python, type command: py -m pip install pyserial
 
 STEP 3 : Design model with all components prepared at STEP 1, you can see file "Circuit_Diagram_With2Motor.png", "Circuit_Diagram_With MatrixLedMax7219.png", "Circuit_Diagram_With_RotationSensor.png" and "DesignModel.png" for designing models
 
